@@ -1,11 +1,14 @@
 package main
 
 import (
-	"fmt"
+	// "fmt"
+	"context"
 	"net"
 	"net/http"
 	"notes-go/internal/config"
 	"notes-go/internal/user"
+	"notes-go/internal/user/db"
+	"notes-go/pkg/client/mongodb"
 	"notes-go/pkg/logging"
 	"os"
 	"path"
@@ -22,6 +25,15 @@ func main() {
 	router := httprouter.New()
 
 	cfg := config.GetConfig()
+	cfgMongo := cfg.MongoDB
+	
+	mongoDBClient, err := mongodb.NewClient(context.Background(), cfgMongo.Host, cfgMongo.Port, cfgMongo.Username, cfgMongo.Password, cfgMongo.Database, cfgMongo.AuthDB)
+
+	if err != nil {
+		panic(err)
+	}
+
+	storage := db.NewStorage(mongoDBClient, cfgMongo.Collection, logger)
 
 	logger.Info("register user nadler")
 	handler := user.NewHandler(logger)
@@ -52,8 +64,8 @@ func start(router *httprouter.Router, cfg *config.Config) {
 		listener, listenErr = net.Listen("unix", socketPath)
 	} else {
 		logger.Info("listen tcp")
-		address := fmt.Sprintf("%s:%s", cfg.Listen.BindIp, cfg.Listen.Port)
-		listener, listenErr = net.Listen("tcp", address)
+		// address := fmt.Sprintf("%s:%s", cfg.Listen.BindIp, cfg.Listen.Port)
+		listener, listenErr = net.Listen("tcp", "0.0.0.0:10000")
 		logger.Infof("Server is listening port %s:%s", cfg.Listen.BindIp, cfg.Listen.Port)
 	}
 
