@@ -1,7 +1,9 @@
 package user
 
 import (
+	"fmt"
 	"net/http"
+	"notes-go/internal/apperror"
 	"notes-go/internal/handlers"
 	"notes-go/pkg/logging"
 
@@ -24,40 +26,43 @@ func NewHandler(logger *logging.Logger) handlers.Handler {
 }
 
 func (h *handler) Register(router *httprouter.Router) {
-	router.GET(usersURL, h.GetList)
-	router.GET(userURL, h.GetUserByUUID)
-	router.POST(userURL, h.CreateUser)
-	router.PUT(userURL, h.UpdateUser)
-	router.PATCH(userURL, h.PartiallyUpdateUser)
-	router.DELETE(userURL, h.DeleteUser)
+	router.HandlerFunc(http.MethodGet, usersURL, apperror.Middleware(h.GetList))
+	router.HandlerFunc(http.MethodPost, userURL, apperror.Middleware(h.CreateUser))
+	router.HandlerFunc(http.MethodGet, userURL, apperror.Middleware(h.GetUserByUUID))
+	router.HandlerFunc(http.MethodPut, userURL, apperror.Middleware(h.UpdateUser))
+	router.HandlerFunc(http.MethodPatch, userURL, apperror.Middleware(h.PartiallyUpdateUser))
+	router.HandlerFunc(http.MethodDelete, userURL, apperror.Middleware(h.DeleteUser))
 }
 
-func (h *handler) GetList(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
-	w.WriteHeader(200)
-	w.Write([]byte("This is list of users"))
+func (h *handler) GetList(w http.ResponseWriter, r *http.Request) error {
+	return apperror.ErrNotFound
 }
 
-func (h *handler) CreateUser(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
-	w.WriteHeader(201)
-	w.Write([]byte("This is create user"))
+func (h *handler) CreateUser(w http.ResponseWriter, r *http.Request) error {
+	return fmt.Errorf("this is API error")
 }
 
-func (h *handler) GetUserByUUID(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
-	w.WriteHeader(200)
-	w.Write([]byte("This is get user"))
+func (h *handler) GetUserByUUID(w http.ResponseWriter, r *http.Request) error {
+	return apperror.NewAppError(nil, "test", "test", "t13")
 }
 
-func (h *handler) UpdateUser(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
+func (h *handler) UpdateUser(w http.ResponseWriter, r *http.Request) error {
 	w.WriteHeader(204)
 	w.Write([]byte("This is update user"))
+
+	return nil
 }
 
-func (h *handler) PartiallyUpdateUser(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
+func (h *handler) PartiallyUpdateUser(w http.ResponseWriter, r *http.Request) error {
 	w.WriteHeader(204)
 	w.Write([]byte("This is partialupdate user"))
+
+	return nil
 }
 
-func (h *handler) DeleteUser(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
+func (h *handler) DeleteUser(w http.ResponseWriter, r *http.Request) error {
 	w.WriteHeader(204)
 	w.Write([]byte("This is delete user"))
+
+	return nil
 }
